@@ -6,8 +6,11 @@ from input_functions import confirmation
 
 
 def make_folder(folder_name):
-    os.makedirs(folder_name, exist_ok=True)
-    return f"Папка '{folder_name}' успешно создана."
+    try:
+        os.makedirs(folder_name, exist_ok=True)
+        return f"Папка '{folder_name}' успешно создана."
+    except OSError as error:
+        return f"Ошибка при создании папки: {error}"
 
 
 def remove_file_or_folder(object_name):
@@ -30,11 +33,17 @@ def copy_file_or_folder(source, destination):
         return f'Не найдено файла или папки с названием {source}'
 
     if os.path.isfile(source):
-        shutil.copy(source, destination)
-        return f"Файл '{source}' скопирован в '{destination}'"
+        try:
+            shutil.copy(source, destination)
+            return f"Файл '{source}' скопирован в '{destination}'"
+        except IOError as error:
+            return f"Не удалось скопировать файл. Ошибка: {error}"
     elif os.path.isdir(source):
-        shutil.copytree(source, destination, dirs_exist_ok=True)
-        return f"Папка '{source}' скопирована в '{destination}'"
+        try:
+            shutil.copytree(source, destination, dirs_exist_ok=True)
+            return f"Папка '{source}' скопирована в '{destination}'"
+        except shutil.Error as error:
+            return f"Не удалось скопировать папку. {error}"
     else:
         return f'{source} не является папкой или файлом'
 
@@ -42,11 +51,13 @@ def copy_file_or_folder(source, destination):
 def list_dir(show_folders=True, show_files=True):
     contents = os.listdir()
     objets_list = []
-    for item in contents:
-        if show_folders and os.path.isdir(item):
-            objets_list.append(item)
-        if show_files and os.path.isfile(item):
-            objets_list.append(item)
+
+    if show_folders:
+        objets_list.extend([item for item in contents if os.path.isdir(item)])
+
+    if show_files:
+        objets_list.extend([item for item in contents if os.path.isfile(item)])
+
     return objets_list
 
 
@@ -66,8 +77,11 @@ def show_platform_info():
 
 
 def change_work_directory(new_directory):
-    os.chdir(new_directory)
-    return f"Текущая рабочая директория изменена на: {os.getcwd()}"
+    try:
+        os.chdir(new_directory)
+        return f"Текущая рабочая директория изменена на: {os.getcwd()}"
+    except Exception as e:
+        return f"Ошибка при смене директории: {e}"
 
 
 def save_current_dir(file_name='listdir.txt'):
@@ -169,7 +183,6 @@ def run_file_manager():
 
         print()
         input('Для возврата в главное меню нажмите Enter')
-
 
 if __name__ == "__main__":
     run_file_manager()
